@@ -19,20 +19,21 @@ New-Item -ItemType Directory -Path $bundle | Out-Null
 
 # Create expected folder layout
 $dotnetDir = Join-Path $bundle "DotNet-SDK"
-$dxDir     = Join-Path $bundle "DirectX-June-2010-Redist"
 $vcDir     = Join-Path $bundle "Microsoft-Visual-C-Runtimes-ALL-Install"
 
-New-Item -ItemType Directory -Path $dotnetDir, $dxDir, $vcDir | Out-Null
+New-Item -ItemType Directory -Path $dotnetDir, $vcDir | Out-Null
 
 # Copy repo files into the bundle root
 Copy-Item (Join-Path $root "RunMe.bat") -Destination $bundle
-if (Test-Path (Join-Path $root "README.md")) { Copy-Item (Join-Path $root "README.md") -Destination $bundle }
+if (Test-Path (Join-Path $root "README.md")) {
+  Copy-Item (Join-Path $root "README.md") -Destination $bundle
+}
 
 # Copy helper bat files if present in repo
-$dotnetBat = Join-Path $root "DotNet-SDK\dotnet.bat"
+$dotnetBat = Join-Path $root "DotNet-SDK\\dotnet.bat"
 if (Test-Path $dotnetBat) { Copy-Item $dotnetBat -Destination $dotnetDir }
 
-$mstBat = Join-Path $root "Microsoft-Visual-C-Runtimes-ALL-Install\mst.bat"
+$mstBat = Join-Path $root "Microsoft-Visual-C-Runtimes-ALL-Install\\mst.bat"
 if (Test-Path $mstBat) { Copy-Item $mstBat -Destination $vcDir }
 
 function Download-File {
@@ -50,16 +51,12 @@ if ($config.include_vc_redist) {
   Download-File "https://aka.ms/vs/17/release/vc_redist.x86.exe" (Join-Path $vcDir "vc_redist.x86.exe")
 }
 
-# DirectX June 2010 redist (official Microsoft download). Download and extract.
-if ($config.include_directx_jun2010) {
-  $dxRedist = Join-Path $outRoot "directx_Jun2010_redist.exe"
-  Download-File "https://download.microsoft.com/download/1/1/7/1170A7B6-1A4A-4F1C-9B65-7FCE3B6C5C3A/directx_Jun2010_redist.exe" $dxRedist
+# NOTE:
+# DirectX June 2010 is intentionally NOT downloaded in CI.
+# Microsoft frequently removes or relocates the file, causing CI failures.
+# RunMe.bat handles DirectX locally if needed.
 
-  # Extract to the expected folder (supports /Q /T:<path>)
-  & $dxRedist /Q /T:$dxDir | Out-Null
-}
-
-# .NET SDK installers via official release metadata (releases.json) for the channel.
+# .NET SDK installers via official release metadata
 function Get-DotNetSdkInstallerUrl {
   param(
     [Parameter(Mandatory=$true)][string]$SdkVersion
@@ -86,7 +83,7 @@ function Get-DotNetSdkInstallerUrl {
 }
 
 foreach ($v in $config.dotnet_sdk_versions) {
-  $url = Get-DotNetSdkInstallerUrl -SdkVersion $v
+  $url = Get-DotNetSdkdkInstallerUrl = Get-DotNetSdkInstallerUrl -SdkVersion $v
   $out = Join-Path $dotnetDir ("dotnet-sdk-$v-win-x64.exe")
   Download-File $url $out
 }

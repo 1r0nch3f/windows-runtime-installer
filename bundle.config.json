@@ -5,5 +5,5 @@
     "9.0.200"
   ],
   "include_vc_redist": true,
-  "include_directx_jun2010": true
+  "include_directx_jun2010": false
 }
