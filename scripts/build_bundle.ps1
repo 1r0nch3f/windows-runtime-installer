@@ -30,10 +30,10 @@ if (Test-Path (Join-Path $root "README.md")) {
 }
 
 # Copy helper bat files if present in repo
-$dotnetBat = Join-Path $root "DotNet-SDK\\dotnet.bat"
+$dotnetBat = Join-Path $root "DotNet-SDK\dotnet.bat"
 if (Test-Path $dotnetBat) { Copy-Item $dotnetBat -Destination $dotnetDir }
 
-$mstBat = Join-Path $root "Microsoft-Visual-C-Runtimes-ALL-Install\\mst.bat"
+$mstBat = Join-Path $root "Microsoft-Visual-C-Runtimes-ALL-Install\mst.bat"
 if (Test-Path $mstBat) { Copy-Item $mstBat -Destination $vcDir }
 
 function Download-File {
@@ -53,8 +53,7 @@ if ($config.include_vc_redist) {
 
 # NOTE:
 # DirectX June 2010 is intentionally NOT downloaded in CI.
-# Microsoft frequently removes or relocates the file, causing CI failures.
-# RunMe.bat handles DirectX locally if needed.
+# RunMe.bat can handle DirectX locally if you keep it in your repo for offline installs.
 
 # .NET SDK installers via official release metadata
 function Get-DotNetSdkInstallerUrl {
@@ -83,7 +82,7 @@ function Get-DotNetSdkInstallerUrl {
 }
 
 foreach ($v in $config.dotnet_sdk_versions) {
-  $url = Get-DotNetSdkdkInstallerUrl = Get-DotNetSdkInstallerUrl -SdkVersion $v
+  $url = Get-DotNetSdkInstallerUrl -SdkVersion $v
   $out = Join-Path $dotnetDir ("dotnet-sdk-$v-win-x64.exe")
   Download-File $url $out
 }
