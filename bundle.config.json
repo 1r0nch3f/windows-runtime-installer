@@ -1,0 +1,9 @@
+{
+  "dotnet_sdk_versions": [
+    "6.0.420",
+    "8.0.406",
+    "9.0.200"
+  ],
+  "include_vc_redist": true,
+  "include_directx_jun2010": true
+}

@@ -1,0 +1,31 @@
+name: Build and publish release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (example: v1.1)"
+        required: true
+        default: "v1.1"
+
+permissions:
+  contents: write
+
+jobs:
+  build_release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build bundle zip
+        shell: pwsh
+        run: |
+          .\scripts\build_bundle.ps1 -Tag "${{ inputs.tag }}"
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: Windows Runtime Installer ${{ inputs.tag }}
+          files: out/windows-runtime-installer-${{ inputs.tag }}.zip
+          generate_release_notes: true
