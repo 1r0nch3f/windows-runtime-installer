@@ -1,47 +1,54 @@
+# update_bundle_config.ps1
+# Safe updater for bundle.config.json
+# - Ignores preview / rc SDKs
+# - Does NOT cast to System.Version
+# - Stable-only, production safe
+
 $ErrorActionPreference = "Stop"
 
-$root = Resolve-Path "$PSScriptRoot\.."
-$configPath = Join-Path $root "bundle.config.json"
+$bundlePath = "bundle.config.json"
+if (-not (Test-Path $bundlePath)) {
+    Write-Error "bundle.config.json not found"
+}
 
-$config = Get-Content $configPath -Raw | ConvertFrom-Json
+$bundle = Get-Content $bundlePath | ConvertFrom-Json
 
-function Get-LatestSdkVersionForChannel {
-  param(
-    [Parameter(Mandatory=$true)][string]$Channel
-  )
+function Get-LatestStableSdk {
+    param (
+        [string]$Channel
+    )
 
-  $metaUrl = "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$Channel/releases.json"
-  $meta = Invoke-RestMethod -Uri $metaUrl
+    $url = "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$Channel/releases.json"
+    $data = Invoke-RestMethod $url
 
-  $versions = @()
-  foreach ($rel in $meta.releases) {
-    if ($rel.sdk -and $rel.sdk.version) {
-      $versions += [Version]$rel.sdk.version
+    $stable = $data.releases |
+        Where-Object { $_.sdk.version -notmatch "-" } |
+        Sort-Object { $_.sdk.version } -Descending |
+        Select-Object -First 1
+
+    return $stable.sdk.version
+}
+
+$changed = $false
+
+foreach ($sdk in $bundle.dotnet.sdks) {
+    $channel = $sdk.channel
+    Write-Host "Checking .NET SDK channel $channel"
+
+    $latest = Get-LatestStableSdk -Channel $channel
+
+    if ($sdk.version -ne $latest) {
+        Write-Host "Updating $channel from $($sdk.version) to $latest"
+        $sdk.version = $latest
+        $changed = $true
+    } else {
+        Write-Host "$channel already up to date ($latest)"
     }
-  }
-
-  if (-not $versions.Count) {
-    throw "No SDK versions found for channel $Channel"
-  }
-
-  ($versions | Sort-Object -Descending | Select-Object -First 1).ToString()
 }
 
-$existing = @($config.dotnet_sdk_versions)
-$channels = $existing |
-  ForEach-Object { ($_ -split "\.")[0..1] -join "." } |
-  Select-Object -Unique
-
-$latest = @()
-foreach ($ch in $channels) {
-  $latest += Get-LatestSdkVersionForChannel -Channel $ch
+if ($changed) {
+    $bundle | ConvertTo-Json -Depth 5 | Set-Content $bundlePath -Encoding UTF8
+    Write-Host "bundle.config.json updated"
+} else {
+    Write-Host "No changes required"
 }
-
-$latest = $latest | Sort-Object { [Version]$_ }
-
-$config.dotnet_sdk_versions = $latest
-
-$config | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 $configPath
-
-Write-Host "Updated dotnet_sdk_versions:"
-$latest | ForEach-Object { Write-Host " - $_" }
