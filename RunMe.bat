@@ -1,38 +1,34 @@
-@ECHO OFF
-SETLOCAL ENABLEEXTENSIONS
-COLOR 0A
-TITLE INSTALL ALL MICROSOFT VISUAL C^+^+ PACKAGES
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
 
-:----------------------------------------------------------------------------------
+title Windows Runtime Installer
 
-PUSHD "%~dp0"
-IF NOT "%1"=="MAX" START /MAX CMD /D /C %0 MAX & GOTO :EOF
+echo =========================================
+echo   Windows Runtime Installer
+echo =========================================
+echo.
 
-:----------------------------------------------------------------------------------
+REM Ensure script runs from its own directory
+cd /d "%~dp0"
 
-REM KILL ANY RUNNING INSTANCES OF DISM OR TIWORKER TO AVOID ERRORS
-TASKLIST | FINDSTR "Dism.exe TiWorker.exe" >NUL && TASKKILL /F /IM "Dism.exe" /IM "TiWorker.exe" /T >NUL 2>&1
+echo Installing Microsoft Visual C++ Runtimes...
+echo -----------------------------------------
+call "Microsoft-Visual-C-Runtimes-ALL-Install\install_all.bat"
 
-:----------------------------------------------------------------------------------
+echo.
+echo Installing .NET SDKs...
+echo -----------------------------------------
+for %%F in ("DotNet-SDK\*.exe") do (
+    echo Installing %%~nxF
+    start /wait "" "%%F" /quiet /norestart
+)
 
-SETLOCAL ENABLEEXTENSIONS
-CALL "DotNet-SDK\dotnet.bat"
-ENDLOCAL
+echo.
+echo =========================================
+echo   All runtime installations complete
+echo =========================================
+echo.
 
-SETLOCAL ENABLEEXTENSIONS
-CALL "Microsoft-Visual-C-Runtimes-ALL-Installers\msft.bat"
-ENDLOCAL
-
-SETLOCAL ENABLEEXTENSIONS
-CALL "DirectX-June-2010-Redist\directx.bat"
-ENDLOCAL
-
-:----------------------------------------------------------------------------------
-
-CLS
-ECHO Successfully installed all Microsoft's Visual C Runtimes, DotNet SDK LTS Runtimes, and DirectX!
-ECHO=
-ECHO Your computer must be happier!
-ECHO=
-ECHO Press Enter to exit.
-PAUSE >NUL
+echo If no errors appeared above, installation was successful.
+echo Press any key to close this window.
+pause >nul
