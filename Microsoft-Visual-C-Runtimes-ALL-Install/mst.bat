@@ -1,4 +1,25 @@
-REM Optional:
-REM If your existing RunMe.bat calls Microsoft-Visual-C-Runtimes-ALL-Install\mst.bat,
-REM keep your current mst.bat in that folder in your repo (it can remain small).
-REM This automation pack does NOT overwrite your mst.bat.
+@echo off
+setlocal EnableExtensions
+
+cd /d "%~dp0"
+
+set "foundInstaller=0"
+
+if exist "vc_redist.x64.exe" (
+  set "foundInstaller=1"
+  echo Installing vc_redist.x64.exe ...
+  start /wait "" "vc_redist.x64.exe" /install /quiet /norestart
+)
+
+if exist "vc_redist.x86.exe" (
+  set "foundInstaller=1"
+  echo Installing vc_redist.x86.exe ...
+  start /wait "" "vc_redist.x86.exe" /install /quiet /norestart
+)
+
+if "%foundInstaller%"=="0" (
+  echo No Visual C++ redistributable installers were found in %cd%.
+)
+
+echo Done.
+exit /b 0
