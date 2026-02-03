@@ -13,14 +13,24 @@ cd /d "%~dp0"
 
 echo Installing Microsoft Visual C++ Runtimes...
 echo -----------------------------------------
-call "Microsoft-Visual-C-Runtimes-ALL-Install\install_all.bat"
+if exist "Microsoft-Visual-C-Runtimes-ALL-Install\mst.bat" (
+    call "Microsoft-Visual-C-Runtimes-ALL-Install\mst.bat"
+) else if exist "Microsoft-Visual-C-Runtimes-ALL-Install\install_all.bat" (
+    call "Microsoft-Visual-C-Runtimes-ALL-Install\install_all.bat"
+) else (
+    echo No VC++ runtime installer script found.
+)
 
 echo.
 echo Installing .NET SDKs...
 echo -----------------------------------------
-for %%F in ("DotNet-SDK\*.exe") do (
-    echo Installing %%~nxF
-    start /wait "" "%%F" /quiet /norestart
+if exist "DotNet-SDK\dotnet.bat" (
+    call "DotNet-SDK\dotnet.bat"
+) else (
+    for %%F in ("DotNet-SDK\*.exe") do (
+        echo Installing %%~nxF
+        start /wait "" "%%F" /quiet /norestart
+    )
 )
 
 echo.
